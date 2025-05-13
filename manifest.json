@@ -1,0 +1,14 @@
+{
+  "name": "SimpleAccept",
+  "version": "1.0.0",
+  "description": "Auto Queue Accepter for League of Legends",
+  "author": "Your Username",
+  "files": [
+    "autoaccept.js"
+  ],
+  "icon": "icon.png",
+  "tags": [
+    "utility",
+    "enhancement"
+  ]
+} 
