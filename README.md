@@ -5,7 +5,7 @@ A Pengu Loader plugin for League of Legends that automatically accepts match que
 ## Features
 
 - **Auto Accept**: Automatically accepts match queues after a set delay (9.5 seconds)
-- **Hide Dialog**: Hides the match acceptance dialog
+- **Hide Dialog**: Hides the match acceptance dialog, allowing you to continue using the client (open chests, shop, etc.) while in queue
 - **Clean UI**: Minimalist interface with toggle buttons in the lobby footer
 - **Settings Persistence**: Your preferences are saved between sessions
 
