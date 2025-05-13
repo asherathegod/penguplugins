@@ -1,3 +1,11 @@
+/**
+ * @name AutoAcceptEnhanced
+ * @author theashera
+ * @description Auto queue accepter with switches for hiding the match found dialog and auto accepting the match
+ * @version 1.0.0
+ * @link https://github.com/asherathegod/penguplugins
+ */
+
 document.addEventListener("DOMContentLoaded", function () {
   console.log("[Pengu Loader] Auto Accept plugin loaded");
   

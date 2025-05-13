@@ -1,10 +1,10 @@
-# Pengu Auto Accept
+# AutoAcceptEnhanced
 
 A Pengu Loader plugin for League of Legends that automatically accepts match queues and provides additional quality-of-life features.
 
 ## Features
 
-- **Auto Accept**: Automatically accepts match queues after a set delay
+- **Auto Accept**: Automatically accepts match queues after a set delay (9.5 seconds)
 - **Hide Dialog**: Hides the match acceptance dialog
 - **Clean UI**: Minimalist interface with toggle buttons in the lobby footer
 - **Settings Persistence**: Your preferences are saved between sessions
@@ -12,8 +12,18 @@ A Pengu Loader plugin for League of Legends that automatically accepts match que
 ## Installation
 
 1. Make sure you have [Pengu Loader](https://pengu.lol) installed
-2. Download the plugin files
-3. Place the files in your Pengu Loader plugins directory
+2. Download the plugin file (`autoaccept.js`)
+3. Place the file in your Pengu Loader plugins directory
+
+### File Structure
+
+```
+📁 Pengu Loader
+ ┣ 📁 plugins
+ ┃  ┣ 📄 autoaccept.js
+ ┃  ┗ 📁 (other plugins)
+ ┗ 📁 (other Pengu Loader files)
+```
 
 ## Usage
 
