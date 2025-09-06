@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let switchesCreated = false;
   let autofillButtonCreated = false;
   let lastKnownLobbyState = null;
+  let readyCheckTimeout = null;
+  let readyCheckStartTime = null;
   
   // Configuration settings with defaults
   let settings = {
@@ -385,6 +387,20 @@ document.addEventListener("DOMContentLoaded", function () {
     if (dialogLargeElement && !styleElement && (settings.autoAccept || settings.hideDialog)) {
       console.log("[Pengu Loader] Match found dialog detected");
       
+      // Record when the ready check started
+      if (!readyCheckStartTime) {
+        readyCheckStartTime = Date.now();
+        console.log("[Pengu Loader] Ready check started at:", new Date(readyCheckStartTime));
+      }
+      
+      // Set up a timeout to force cleanup if ready check takes too long (15 seconds)
+      if (!readyCheckTimeout) {
+        readyCheckTimeout = setTimeout(() => {
+          console.log("[Pengu Loader] Ready check timeout detected - forcing cleanup");
+          forceCleanupReadyCheck();
+        }, 15000);
+      }
+      
       // Only add the style if hideDialog is enabled
       if (settings.hideDialog) {
         styleElement = document.createElement('style');
@@ -446,7 +462,10 @@ document.addEventListener("DOMContentLoaded", function () {
           });
         }, 9500);
       }
-    } else if (!dialogLargeElement && styleElement) {
+    } else if (!dialogLargeElement && (styleElement || readyCheckStartTime)) {
+      // Ready check dialog is gone, clean up everything
+      console.log("[Pengu Loader] Ready check dialog disappeared - cleaning up");
+      
       if (styleElement) {
         styleElement.parentNode.removeChild(styleElement);
         styleElement = null;
@@ -455,10 +474,13 @@ document.addEventListener("DOMContentLoaded", function () {
       if (textTimeout) clearTimeout(textTimeout);
       if (apiCallTimeout) clearTimeout(apiCallTimeout);
       if (countdownInterval) clearInterval(countdownInterval);
+      if (readyCheckTimeout) clearTimeout(readyCheckTimeout);
 
       textTimeout = null;
       apiCallTimeout = null;
       countdownInterval = null;
+      readyCheckTimeout = null;
+      readyCheckStartTime = null;
 
       if (settings.hideDialog) {
         const playerNameElements = document.querySelectorAll('.player-name__game-name.player-name__force-locale-text-direction');
@@ -472,6 +494,64 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
   
+  // Force cleanup of ready check dialog and music
+  function forceCleanupReadyCheck() {
+    console.log("[Pengu Loader] Forcing cleanup of ready check dialog");
+    
+    // Clear all timeouts and intervals
+    if (textTimeout) clearTimeout(textTimeout);
+    if (apiCallTimeout) clearTimeout(apiCallTimeout);
+    if (countdownInterval) clearInterval(countdownInterval);
+    if (readyCheckTimeout) clearTimeout(readyCheckTimeout);
+    
+    // Reset variables
+    textTimeout = null;
+    apiCallTimeout = null;
+    countdownInterval = null;
+    readyCheckTimeout = null;
+    readyCheckStartTime = null;
+    
+    // Remove style element if it exists
+    if (styleElement) {
+      styleElement.parentNode.removeChild(styleElement);
+      styleElement = null;
+    }
+    
+    // Restore original player names if they were modified
+    if (settings.hideDialog && originalTexts.length > 0) {
+      const playerNameElements = document.querySelectorAll('.player-name__game-name.player-name__force-locale-text-direction');
+      playerNameElements.forEach((element, index) => {
+        if (index < originalTexts.length) {
+          element.textContent = originalTexts[index];
+          element.style.color = originalColors[index];
+        }
+      });
+    }
+    
+    // Try to find and remove any lingering ready check dialogs
+    const readyCheckDialog = document.querySelector('.ready-check-timer');
+    if (readyCheckDialog) {
+      // Force hide the dialog by adding display: none
+      readyCheckDialog.style.display = 'none';
+      
+      // Try to find the modal container and hide it too
+      const modal = document.querySelector('.modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      
+      // Try to find and click any close buttons
+      const closeButtons = document.querySelectorAll('[aria-label="Close"], .close-button, [data-testid="close"]');
+      closeButtons.forEach(button => {
+        if (button.offsetParent !== null) { // Check if button is visible
+          button.click();
+        }
+      });
+    }
+    
+    console.log("[Pengu Loader] Ready check cleanup completed");
+  }
+
   // Check if we're in a lobby by looking for key elements
   function isInLobby() {
     return document.querySelector('.find-match-button') !== null || 
@@ -491,6 +571,12 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!currentlyInLobby) {
         switchesCreated = false;
         autofillButtonCreated = false;
+        
+        // Force cleanup of any lingering ready check dialogs when leaving lobby
+        if (readyCheckStartTime || styleElement) {
+          console.log("[Pengu Loader] Leaving lobby - forcing cleanup of ready check");
+          forceCleanupReadyCheck();
+        }
         
         // Remove switches if they exist
         const switchesContainer = document.getElementById('pengu-switches');
@@ -524,6 +610,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Set up regular checks for UI changes
   setInterval(checkForUIChanges, 1000);
+  
+  // Additional check for stuck ready check dialogs every 5 seconds
+  setInterval(() => {
+    if (readyCheckStartTime) {
+      const timeSinceStart = Date.now() - readyCheckStartTime;
+      if (timeSinceStart > 20000) { // 20 seconds
+        console.log("[Pengu Loader] Ready check has been running for", timeSinceStart, "ms - forcing cleanup");
+        forceCleanupReadyCheck();
+      }
+    }
+  }, 5000);
 
   // Set up mutation observer for DOM changes
   const observer = new MutationObserver(() => {
